@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "Koreb Homes",
+    "loading": "Loading…",
+    "back": "Back",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "sendMessage": "Send a Message",
+    "reportListing": "Report this listing",
+    "verifiedAgent": "Verified Agent",
+    "forSale": "For Sale",
+    "forRent": "For Rent"
+  },
+  "auth": {
+    "welcomeTitle": "Welcome to Koreb Homes",
+    "welcomeSubtitle": "Find your place, or list one — sign up with your phone number",
+    "phoneNumber": "Phone Number",
+    "sendCode": "Send Verification Code",
+    "enterCode": "Enter the code sent to your phone",
+    "verifyCode": "Verify",
+    "iAmA": "I am a...",
+    "roleBuyer": "Buyer / Renter",
+    "roleBuyerDesc": "Browse and save properties",
+    "roleOwner": "Owner",
+    "roleOwnerDesc": "List a property I own",
+    "roleAgent": "Agent / Agency",
+    "roleAgentDesc": "List for clients, get verified",
+    "disclaimer": "By continuing you agree to Koreb Homes' Terms & Privacy Policy."
+  },
+  "home": {
+    "searchPlaceholder": "Search Bole, Sarbet, CMC…",
+    "featuredNearYou": "Featured near you",
+    "list": "List",
+    "map": "Map",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Price: Low to High",
+    "sortPriceDesc": "Price: High to Low"
+  },
+  "listingDetail": {
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "floor": "Floor",
+    "amenities": "Amenities",
+    "description": "Description"
+  },
+  "postListing": {
+    "stepOf": "Step {{step}} of {{total}} — {{label}}",
+    "stepType": "Property Type",
+    "stepDetails": "Property Details",
+    "stepLocation": "Location",
+    "stepPhotos": "Photos",
+    "stepReview": "Review & Pay",
+    "propertyType": "Property Type",
+    "listingType": "Listing Type",
+    "price": "Price (ETB)",
+    "photosHint": "Photos are compressed automatically for fast loading on any connection.",
+    "listingFee": "Listing fee",
+    "dueBeforePublishing": "Due before publishing",
+    "verificationRequiredTitle": "Verify your identity to publish",
+    "verificationRequiredBody": "Koreb Homes requires ID verification before your first listing goes live. This step is coming soon via Fayda, Ethiopia's national digital ID."
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "reviewQueue": "Review Queue",
+    "users": "Users",
+    "agentVerification": "Agent Verification",
+    "reports": "Reports",
+    "pricingSettings": "Pricing & Settings",
+    "totalListings": "Total Listings",
+    "totalUsers": "Total Users",
+    "revenueCollected": "Revenue Collected",
+    "awaitingReview": "Awaiting Review",
+    "approve": "Approve",
+    "reject": "Reject"
+  }
+}

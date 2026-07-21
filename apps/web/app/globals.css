@@ -1,0 +1,35 @@
+/*
+  These CSS variables mirror @koreb/design-tokens/src/colors.ts and
+  typography.ts exactly. If you ever change a token there, mirror the
+  change here too (a future improvement is generating this file from the
+  tokens automatically at build time).
+*/
+:root {
+  --charcoal: #14181a;
+  --charcoal-soft: #22282b;
+  --gold: #c9a24b;
+  --gold-dark: #a8823a;
+  --gold-tint: #f1e6cc;
+  --green: #3b6d30;
+  --cream: #f6f3ec;
+  --line: rgba(20, 24, 26, 0.1);
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-amharic: 'Noto Sans Ethiopic', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--charcoal);
+  background: var(--cream);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

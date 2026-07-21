@@ -1,0 +1,8 @@
+Font files go here — download and drop in these exact filenames:
+- PlayfairDisplay-SemiBold.ttf
+- Inter-Regular.ttf
+- Inter-SemiBold.ttf
+- Inter-Bold.ttf
+- NotoSansEthiopic-Regular.ttf
+
+All are free on Google Fonts (fonts.google.com) — search each family name, download, and place the .ttf files here with these exact names so app/_layout.tsx can load them.

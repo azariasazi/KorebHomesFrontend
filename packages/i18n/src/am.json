@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "ኮሬብ ሆምስ",
+    "loading": "በመጫን ላይ…",
+    "back": "ተመለስ",
+    "continue": "ቀጥል",
+    "cancel": "ሰርዝ",
+    "save": "አስቀምጥ",
+    "submit": "አስገባ",
+    "call": "ደውል",
+    "whatsapp": "ዋትስአፕ",
+    "sendMessage": "መልእክት ላክ",
+    "reportListing": "ይህን ማስታወቂያ ሪፖርት አድርግ",
+    "verifiedAgent": "የተረጋገጠ ወኪል",
+    "forSale": "ለሽያጭ",
+    "forRent": "ለኪራይ"
+  },
+  "auth": {
+    "welcomeTitle": "ወደ ኮሬብ ሆምስ እንኳን በደህና መጡ",
+    "welcomeSubtitle": "ቤትዎን ያግኙ ወይም ያስተዋውቁ — በስልክ ቁጥርዎ ይመዝገቡ",
+    "phoneNumber": "የስልክ ቁጥር",
+    "sendCode": "የማረጋገጫ ኮድ ላክ",
+    "enterCode": "ወደ ስልክዎ የተላከውን ኮድ ያስገቡ",
+    "verifyCode": "አረጋግጥ",
+    "iAmA": "እኔ...",
+    "roleBuyer": "ገዢ / ተከራይ",
+    "roleBuyerDesc": "ንብረቶችን ያስሱ እና ያስቀምጡ",
+    "roleOwner": "ባለቤት",
+    "roleOwnerDesc": "የራሴን ንብረት አስተዋውቅ",
+    "roleAgent": "ወኪል / ኤጀንሲ",
+    "roleAgentDesc": "ለደንበኞች አስተዋውቅ፣ ተረጋግጥ",
+    "disclaimer": "በመቀጠል የኮሬብ ሆምስን የአገልግሎት ውል እና የግላዊነት ፖሊሲ ተስማምተዋል።"
+  },
+  "home": {
+    "searchPlaceholder": "ቦሌ፣ ሳርቤት፣ ሲኤምሲን ይፈልጉ…",
+    "featuredNearYou": "በአቅራቢያዎ የተለዩ",
+    "list": "ዝርዝር",
+    "map": "ካርታ",
+    "sortNewest": "አዲስ",
+    "sortPriceAsc": "ዋጋ፦ ከዝቅተኛ ወደ ከፍተኛ",
+    "sortPriceDesc": "ዋጋ፦ ከከፍተኛ ወደ ዝቅተኛ"
+  },
+  "listingDetail": {
+    "bedrooms": "መኝታ ቤቶች",
+    "bathrooms": "መታጠቢያ ቤቶች",
+    "floor": "ፎቅ",
+    "amenities": "አገልግሎቶች",
+    "description": "መግለጫ"
+  },
+  "postListing": {
+    "stepOf": "ደረጃ {{step}} ከ{{total}} — {{label}}",
+    "stepType": "የንብረት ዓይነት",
+    "stepDetails": "የንብረት ዝርዝሮች",
+    "stepLocation": "አካባቢ",
+    "stepPhotos": "ፎቶዎች",
+    "stepReview": "ገምግም እና ክፈል",
+    "propertyType": "የንብረት ዓይነት",
+    "listingType": "የማስታወቂያ ዓይነት",
+    "price": "ዋጋ (ብር)",
+    "photosHint": "ፎቶዎች በማንኛውም ግንኙነት ላይ በፍጥነት እንዲጫኑ በራስ-ሰር ይጨመቃሉ።",
+    "listingFee": "የማስታወቂያ ክፍያ",
+    "dueBeforePublishing": "ከመታተሙ በፊት የሚከፈል",
+    "verificationRequiredTitle": "ለማተም ማንነትዎን ያረጋግጡ",
+    "verificationRequiredBody": "ኮሬብ ሆምስ የመጀመሪያ ማስታወቂያዎ ከመታተሙ በፊት የመታወቂያ ማረጋገጫ ይጠይቃል። ይህ ደረጃ በቅርቡ በፋይዳ በኩል ይመጣል።"
+  },
+  "admin": {
+    "dashboard": "ዳሽቦርድ",
+    "reviewQueue": "የግምገማ ወረፋ",
+    "users": "ተጠቃሚዎች",
+    "agentVerification": "የወኪል ማረጋገጫ",
+    "reports": "ሪፖርቶች",
+    "pricingSettings": "ዋጋ እና ቅንብሮች",
+    "totalListings": "ጠቅላላ ማስታወቂያዎች",
+    "totalUsers": "ጠቅላላ ተጠቃሚዎች",
+    "revenueCollected": "የተሰበሰበ ገቢ",
+    "awaitingReview": "ግምገማ በመጠባበቅ ላይ",
+    "approve": "አጽድቅ",
+    "reject": "አትቀበል"
+  }
+}
