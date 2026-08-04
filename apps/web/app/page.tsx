@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 export default function RootPage() {
-  // Placeholder until the Home Feed screen is built — sign up first,
-  // per the sequencing we agreed on (Sign Up before Home Feed).
-  redirect('/signup');
+  // Anyone landing on the root sees the public Home Feed — browsing is open to
+  // everyone, no account required. Sign Up / Log In live in the header.
+  redirect('/home');
 }

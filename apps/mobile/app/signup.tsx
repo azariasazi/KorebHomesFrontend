@@ -7,11 +7,13 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  ImageBackground,
 } from 'react-native';
 import Svg, { Polygon } from 'react-native-svg';
 import { router } from 'expo-router';
 import { colors, radius, spacing } from '@koreb/design-tokens';
-import { t, type Language } from '@koreb/i18n';
+import { t } from '@koreb/i18n';
+import { useLang } from '@koreb/hooks';
 import type { Role } from '@koreb/types';
 import { ApiError } from '@koreb/api-client';
 import { api } from '../lib/api';
@@ -23,7 +25,10 @@ const ROLES: { value: Role; titleKey: string; descKey: string }[] = [
 ];
 
 export default function SignUpScreen() {
-  const [lang, setLang] = useState<Language>('en');
+  // Language now lives app-wide in KorebProvider.
+  const { lang, toggleLang } = useLang();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [role, setRole] = useState<Role>('BUYER_RENTER');
@@ -32,6 +37,8 @@ export default function SignUpScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const fullPhone = `+251${phone.replace(/\D/g, '')}`;
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+  const nameReady = firstName.trim().length > 0 && lastName.trim().length > 0;
 
   async function handleSendCode() {
     setError(null);
@@ -50,7 +57,12 @@ export default function SignUpScreen() {
     setError(null);
     setLoading(true);
     try {
-      await api.auth.verifyOtp({ phone: fullPhone, code, role });
+      await api.auth.verifyOtp({
+        phone: fullPhone,
+        code,
+        role,
+        ...(fullName ? { name: fullName } : {}),
+      });
       router.replace('/home');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Invalid code. Please try again.');
@@ -62,27 +74,79 @@ export default function SignUpScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.charcoal }}
-      contentContainerStyle={{ padding: spacing.lg, paddingTop: 60, paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 60 }}
     >
-      <TouchableOpacity
-        style={styles.langToggle}
-        onPress={() => setLang(lang === 'en' ? 'am' : 'en')}
+      {/* Brand banner — the Addis Ababa night skyline with a dark scrim so the
+          mark and headline stay readable over the city lights. Mirrors the web
+          design's photo panel, adapted to a top banner for mobile. */}
+      <ImageBackground
+        source={require('../assets/brand-photo.jpg')}
+        style={styles.banner}
+        imageStyle={styles.bannerImg}
       >
-        <Text style={styles.langToggleText}>EN / አማ</Text>
-      </TouchableOpacity>
+        <View style={styles.bannerScrim} />
+        <TouchableOpacity style={styles.langToggle} onPress={toggleLang}>
+          <Text style={styles.langToggleText}>EN / አማ</Text>
+        </TouchableOpacity>
+        <View style={styles.bannerContent}>
+          <Svg width={52} height={52} viewBox="0 0 40 40" style={{ marginBottom: 12 }}>
+            <Polygon points="20,3 35,20 20,23 5,20" fill={colors.gold} />
+            <Polygon points="20,23 35,20 20,37 5,20" fill={colors.green} />
+            <Polygon points="20,3 27.5,11.5 20,13 12.5,11.5" fill={colors.goldTint} />
+          </Svg>
+          <Text style={styles.bannerTitle}>{t(lang, 'auth.welcomeTitle')}</Text>
+          <Text style={styles.bannerSubtitle}>{t(lang, 'auth.welcomeSubtitle')}</Text>
+        </View>
+      </ImageBackground>
 
-      <View style={{ alignItems: 'center', marginBottom: spacing.xl }}>
-        <Svg width={56} height={56} viewBox="0 0 40 40" style={{ marginBottom: 14 }}>
-          <Polygon points="20,3 35,20 20,23 5,20" fill={colors.gold} />
-          <Polygon points="20,23 35,20 20,37 5,20" fill={colors.green} />
-          <Polygon points="20,3 27.5,11.5 20,13 12.5,11.5" fill={colors.goldTint} />
-        </Svg>
-        <Text style={styles.title}>{t(lang, 'auth.welcomeTitle')}</Text>
-        <Text style={styles.subtitle}>{t(lang, 'auth.welcomeSubtitle')}</Text>
-      </View>
+      <View style={{ padding: spacing.lg, paddingTop: spacing.xl }}>
 
       {step === 'phone' && (
         <>
+          {/* Google sign-in — placed but disabled until the backend OAuth
+              endpoint exists; shows a "Soon" tag rather than a dead button. */}
+          <TouchableOpacity style={styles.socialBtn} disabled activeOpacity={1}>
+            <View style={styles.gIcon}>
+              <Text style={styles.gIconText}>G</Text>
+            </View>
+            <Text style={styles.socialBtnText}>{t(lang, 'auth.continueWithGoogle')}</Text>
+            <View style={styles.soonTag}>
+              <Text style={styles.soonTagText}>{t(lang, 'auth.comingSoon')}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t(lang, 'auth.orDivider')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Name — required for creating an account. */}
+          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t(lang, 'auth.firstName')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t(lang, 'auth.firstNamePlaceholder')}
+                placeholderTextColor="#5B6265"
+                value={firstName}
+                onChangeText={setFirstName}
+                maxLength={40}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t(lang, 'auth.lastName')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t(lang, 'auth.lastNamePlaceholder')}
+                placeholderTextColor="#5B6265"
+                value={lastName}
+                onChangeText={setLastName}
+                maxLength={40}
+              />
+            </View>
+          </View>
+
           <Text style={styles.label}>{t(lang, 'auth.phoneNumber')}</Text>
           <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg }}>
             <View style={styles.codeBox}>
@@ -99,8 +163,8 @@ export default function SignUpScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.goldButton, (loading || phone.length < 9) && styles.disabled]}
-            disabled={loading || phone.length < 9}
+            style={[styles.goldButton, (loading || phone.length < 9 || !nameReady) && styles.disabled]}
+            disabled={loading || phone.length < 9 || !nameReady}
             onPress={handleSendCode}
           >
             {loading ? (
@@ -155,20 +219,53 @@ export default function SignUpScreen() {
       {error && <Text style={styles.error}>{error}</Text>}
 
       <Text style={styles.disclaimer}>{t(lang, 'auth.disclaimer')}</Text>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  socialBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    backgroundColor: '#fff', borderRadius: 11, paddingVertical: 13, paddingHorizontal: 16,
+    marginBottom: spacing.md, opacity: 0.9,
+  },
+  gIcon: {
+    width: 20, height: 20, borderRadius: 4, backgroundColor: '#4285F4',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  gIconText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  socialBtnText: { color: '#14181A', fontWeight: '600', fontSize: 14 },
+  soonTag: { backgroundColor: 'rgba(201,162,75,0.18)', borderRadius: 999, paddingVertical: 3, paddingHorizontal: 8 },
+  soonTagText: { fontSize: 9.5, fontWeight: '700', color: '#8a7331', letterSpacing: 0.4 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: spacing.md },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
+  dividerText: { color: '#7C8284', fontSize: 11.5, fontWeight: '600', letterSpacing: 0.5 },
+
+  banner: { height: 260, justifyContent: 'flex-end' },
+  bannerImg: { resizeMode: 'cover' },
+  bannerScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(20,24,26,0.45)',
+  },
+  bannerContent: { padding: spacing.lg, paddingBottom: spacing.xl },
+  bannerTitle: {
+    color: colors.cream, fontSize: 26, fontWeight: '700', marginBottom: 6,
+    textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10,
+  },
+  bannerSubtitle: {
+    color: 'rgba(246,243,236,0.9)', fontSize: 13.5, lineHeight: 19, maxWidth: 300,
+    textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8,
+  },
   langToggle: {
-    alignSelf: 'flex-end',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    position: 'absolute', top: 44, right: spacing.lg,
+    backgroundColor: 'rgba(20,24,26,0.4)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.2)',
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    marginBottom: spacing.md,
+    zIndex: 2,
   },
   langToggleText: { color: colors.cream, fontSize: 11.5, fontWeight: '700' },
   title: { color: colors.cream, fontSize: 22, fontWeight: '600', textAlign: 'center', marginBottom: 6 },

@@ -45,14 +45,36 @@ export function createListingsApi(client: ApiClient) {
       return client.request<Listing>(`/listings/mine/${id}`);
     },
 
-    /** Moves a DRAFT or REJECTED listing to AWAITING_PAYMENT — call before initiating payment. */
-    submitForPayment(id: string) {
-      return client.request<Listing>(`/listings/${id}/submit-for-payment`, { method: 'POST' });
+    /**
+     * Submits a DRAFT or REJECTED listing for publication.
+     * The response's `requiresPayment` flag tells the frontend where to go next:
+     *   false → straight to "Submitted, pending review" (current free period)
+     *   true  → call payments.initiateListingPayment and send them to checkout
+     * Build both paths regardless of the current fee setting.
+     */
+    submit(id: string) {
+      return client.request<Listing & { requiresPayment: boolean }>(
+        `/listings/${id}/submit`,
+        { method: 'POST' }
+      );
     },
 
     /** Resets the inactivity clock, bringing an UNPUBLISHED listing back to LIVE. */
     renew(id: string) {
       return client.request<Listing>(`/listings/${id}/renew`, { method: 'POST' });
+    },
+
+    /**
+     * Marks a LIVE listing as sold or rented. No body — the backend derives
+     * SOLD (from a SALE) or RENTED (from a RENT) itself, so no mismatch is possible.
+     */
+    markSoldRented(id: string) {
+      return client.request<Listing>(`/listings/${id}/mark-sold-rented`, { method: 'POST' });
+    },
+
+    /** Reverses sold/rented back to LIVE (deal fell through, or tapped by mistake). */
+    markAvailable(id: string) {
+      return client.request<Listing>(`/listings/${id}/mark-available`, { method: 'POST' });
     },
 
     report(id: string, input: { reason: string; details?: string }) {

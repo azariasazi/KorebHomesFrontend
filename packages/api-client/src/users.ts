@@ -7,7 +7,13 @@ export function createUsersApi(client: ApiClient) {
       return client.request<CurrentUser>('/users/me');
     },
 
-    updateMe(input: { name?: string; city?: string; profilePhotoUrl?: string }) {
+    updateMe(input: {
+      name?: string;
+      city?: string;
+      profilePhotoUrl?: string;
+      /** Set the number shown publicly on listings. Send "" to clear and fall back to account phone. */
+      publicContactPhone?: string;
+    }) {
       return client.request<CurrentUser>('/users/me', { method: 'PATCH', body: input });
     },
 

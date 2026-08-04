@@ -7,6 +7,7 @@ import type {
   Role,
   CurrentUser,
   VerificationStatus,
+  ListingRejectionCode,
 } from '@koreb/types';
 
 export interface AdminReport {
@@ -48,10 +49,11 @@ export function createAdminApi(client: ApiClient) {
       return client.request<Listing>(`/admin/listings/${id}/approve`, { method: 'POST' });
     },
 
-    rejectListing(id: string, reason: string) {
+    /** Reject with a structured code + optional free-text note. The old { reason } shape now 400s. */
+    rejectListing(id: string, code: ListingRejectionCode, note?: string) {
       return client.request<Listing>(`/admin/listings/${id}/reject`, {
         method: 'POST',
-        body: { reason },
+        body: { code, note },
       });
     },
 

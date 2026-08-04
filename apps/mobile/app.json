@@ -11,7 +11,9 @@
       "image": "./assets/splash.png",
       "backgroundColor": "#14181A"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.korebhomes.app"
@@ -23,7 +25,10 @@
       },
       "package": "com.korebhomes.app"
     },
-    "plugins": ["expo-router", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
     "extra": {
       "apiUrl": "http://localhost:3000/api/v1"
     }

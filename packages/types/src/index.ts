@@ -24,9 +24,22 @@ export type ListingStatus =
   | 'LIVE'
   | 'REJECTED'
   | 'UNPUBLISHED'
+  | 'SOLD'
+  | 'RENTED'
   | 'ARCHIVED';
 
 export type SortOption = 'newest' | 'price_asc' | 'price_desc';
+
+/** Structured rejection reasons — set by admin, shown to the owner on their dashboard. */
+export type ListingRejectionCode =
+  | 'DUPLICATE'
+  | 'SUSPECTED_FRAUD'
+  | 'POOR_PHOTOS'
+  | 'INCOMPLETE_DETAILS'
+  | 'PRICE_IMPLAUSIBLE'
+  | 'PROHIBITED_CONTENT'
+  | 'WRONG_CATEGORY'
+  | 'OTHER';
 
 export type Language = 'en' | 'am';
 
@@ -43,6 +56,14 @@ export interface CurrentUser {
   role: Role;
   verificationStatus: VerificationStatus;
   agencyName: string | null;
+  /** The number the user chose to show publicly, or null if unset. */
+  publicContactPhone: string | null;
+  /** What actually shows on their listings now: public number if set, else account phone. */
+  effectiveContactPhone: string | null;
+  /** Present on admin user lists — lets the admin table show a Suspended badge. */
+  isSuspended?: boolean;
+  suspendedReason?: string | null;
+  suspendedAt?: string | null;
   createdAt: string;
 }
 
@@ -53,6 +74,8 @@ export interface PublicUserCard {
   role: Role;
   agencyName: string | null;
   isVerifiedAgent: boolean;
+  /** Number for Call/WhatsApp links: public contact if set, else account phone. */
+  contactPhone: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +105,21 @@ export interface Listing {
   bedrooms: number | null;
   bathrooms: number | null;
   sizeSqm: number | null;
+
+  // --- Building / unit identification (Change Request 01) ---
+  /** PUBLIC. e.g. "Zefmesh Grand". Optional for all types. */
+  buildingName: string | null;
+  /** PUBLIC. -1 = basement, 0 = ground, 1+ = upper floors. Use this, not `floor`. */
+  floorNumber: number | null;
+  /**
+   * PRIVATE. e.g. "4B". Present ONLY on the owner's own listings and admin
+   * responses — the key is absent entirely on public endpoints, so it's
+   * optional here rather than nullable.
+   */
+  unitNumber?: string;
+  /** @deprecated Old free-text floor. Kept during transition; build against `floorNumber`. */
   floor: string | null;
+
   furnished: boolean | null;
   amenities: string[];
   descriptionEn: string | null;
@@ -91,8 +128,16 @@ export interface Listing {
   viewCount: number;
   isFeatured: boolean;
   publishedAt: string | null;
+  /** Set when an owner marks a LIVE listing sold/rented; null otherwise. */
+  soldRentedAt: string | null;
   createdAt: string;
   updatedAt: string;
+
+  // --- Rejection detail (PRIVATE — owner's own listing / admin only) ---
+  rejectionCode?: ListingRejectionCode | null;
+  rejectionReason?: string | null;
+  rejectedAt?: string | null;
+
   photos: ListingPhoto[];
   owner: {
     id: string;
@@ -101,6 +146,8 @@ export interface Listing {
     role: Role;
     agencyName: string | null;
     verificationStatus: VerificationStatus;
+    /** Present on public listing responses — build Call/WhatsApp from this. */
+    contactPhone: string | null;
   };
 }
 
@@ -144,7 +191,10 @@ export interface CreateListingInput {
   bedrooms?: number;
   bathrooms?: number;
   sizeSqm?: number;
-  floor?: string;
+  buildingName?: string;
+  /** Required when propertyType === 'APARTMENT'. Captured but never shown publicly. */
+  unitNumber?: string;
+  floorNumber?: number;
   furnished?: boolean;
   amenities?: string[];
   descriptionEn?: string;

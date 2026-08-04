@@ -7,6 +7,8 @@ const nextConfig = {
     '@koreb/design-tokens',
     '@koreb/i18n',
     '@koreb/types',
+    '@koreb/hooks',
+    '@koreb/utils',
   ],
   images: {
     remotePatterns: [

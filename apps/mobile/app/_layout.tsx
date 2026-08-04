@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import * as Font from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
+import { KorebProvider } from '@koreb/hooks';
 import { colors } from '@koreb/design-tokens';
+import { api, API_BASE_URL } from '../lib/api';
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -30,10 +32,17 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="signup" />
-      <Stack.Screen name="home" />
-    </Stack>
+    <KorebProvider api={api} apiBaseUrl={API_BASE_URL}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="signup" />
+        <Stack.Screen name="home" />
+        <Stack.Screen name="post-listing" />
+        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="favorites" />
+        <Stack.Screen name="search-filters" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="listing/[id]" />
+      </Stack>
+    </KorebProvider>
   );
 }
