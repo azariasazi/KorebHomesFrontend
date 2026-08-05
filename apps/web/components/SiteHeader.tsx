@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useLang, useMe, useLogout } from '@koreb/hooks';
 import { t } from '@koreb/i18n';
 
-type NavKey = 'buy' | 'rent' | 'post';
+type NavKey = 'home' | 'buy' | 'rent' | 'post';
 
 export function SiteHeader({ active }: { active?: NavKey }) {
   const { lang, toggleLang } = useLang();
@@ -35,6 +35,7 @@ export function SiteHeader({ active }: { active?: NavKey }) {
   }, [menuOpen]);
 
   const nav: { key: NavKey; href: string; label: string }[] = [
+    { key: 'home', href: '/home', label: lang === 'am' ? 'መነሻ' : 'Home' },
     { key: 'buy', href: '/home?type=SALE', label: lang === 'am' ? 'ግዛ' : 'Buy' },
     { key: 'rent', href: '/home?type=RENT', label: lang === 'am' ? 'ተከራይ' : 'Rent' },
     {

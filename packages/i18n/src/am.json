@@ -49,7 +49,12 @@
     "haveAccountPrompt": "መለያ አለዎት?",
     "signUpLink": "ይመዝገቡ",
     "logInLink": "ይግቡ",
-    "backToBrowsing": "ወደ ማሰስ ተመለስ"
+    "backToBrowsing": "ወደ ማሰስ ተመለስ",
+    "firstName": "የመጀመሪያ ስም",
+    "lastName": "የአባት ስም",
+    "firstNamePlaceholder": "ዳዊት",
+    "lastNamePlaceholder": "አለሙ",
+    "myAccount": "መለያዬ"
   },
   "home": {
     "searchPlaceholder": "ቦሌ፣ ሳርቤት፣ ሲኤምሲን ይፈልጉ…",

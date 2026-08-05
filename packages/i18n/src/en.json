@@ -49,7 +49,12 @@
     "haveAccountPrompt": "Already have an account?",
     "signUpLink": "Sign up",
     "logInLink": "Log in",
-    "backToBrowsing": "Back to browsing"
+    "backToBrowsing": "Back to browsing",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "firstNamePlaceholder": "Dawit",
+    "lastNamePlaceholder": "Alemu",
+    "myAccount": "My Account"
   },
   "home": {
     "searchPlaceholder": "Search Bole, Sarbet, CMC…",
