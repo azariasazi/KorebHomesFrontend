@@ -5,6 +5,11 @@ import { Providers } from './providers';
 export const metadata: Metadata = {
   title: 'Koreb Homes',
   description: "Ethiopia's premium property marketplace",
+
+  // Points the browser at the icon files in apps/web/public.
+  // Without this, only the plain favicon.ico gets picked up automatically —
+  // the Apple home-screen icon and larger sizes would be ignored.
+
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
