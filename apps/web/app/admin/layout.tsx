@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useKoreb, useMe, useAdminDashboard } from '@koreb/hooks';
 import { t } from '@koreb/i18n';
+import type { AdminDashboardStats } from '@koreb/types';
 
 const NAV = [
   { key: 'dashboard', href: '/admin', labelKey: 'admin.dashboard', icon: DashIcon },
@@ -44,12 +45,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const badgeValue = (key?: string): number | undefined => {
-    if (!stats || !key) return undefined;
-    const v = (stats as Record<string, number>)[key];
-    return v && v > 0 ? v : undefined;
+  const badgeValue = (key?: keyof AdminDashboardStats): number | undefined => { 
+    if (!stats || !key) return undefined; 
+    const v = stats[key]; 
+    return v && v > 0 ? v : undefined; 
   };
-
+  
   return (
     <div className="admin-wrap">
       <aside className="admin-sidebar">
