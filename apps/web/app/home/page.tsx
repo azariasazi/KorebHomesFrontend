@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react'; 
 import { useSearchParams } from 'next/navigation';
 import { SiteHeader } from '../../components/SiteHeader';
 import { ListingCard, ListingCardSkeleton } from '../../components/ListingCard';
@@ -12,8 +12,7 @@ import { t } from '@koreb/i18n';
 import type { Listing, ListingType, PropertyType, SortOption } from '@koreb/types';
 
 type PropertyChip = PropertyType | 'ALL';
-
-export default function HomeFeedPage() {
+export default function HomeFeedPage() { return ( <Suspense fallback={null}> <HomeFeedPageInner /> </Suspense> ); } function HomeFeedPageInner() { 
   const { lang } = useKoreb();
   const searchParams = useSearchParams();
 
