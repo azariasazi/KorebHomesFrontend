@@ -101,10 +101,11 @@ export default function ListingDetailPage() {
     });
 
   const description = listingDescription(listing, lang);
+  const listingId = listing.id;
 
   async function submitReport() {
     try {
-      await report.mutateAsync({ listingId: listing.id, reason: reportReason, details: reportDetails || undefined });
+      await report.mutateAsync({ listingId, reason: reportReason, details: reportDetails || undefined });
       setReportDone(true);
     } catch {
       // If unauthenticated the endpoint 401s — surface a sign-in nudge.
