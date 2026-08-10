@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SiteHeader } from '../../components/SiteHeader';
 import { ListingMap } from '../../components/ListingMap';
@@ -70,7 +70,7 @@ const PROPERTY_TYPES: { value: PropertyType; labelKey: string }[] = [
   { value: 'COMMERCIAL', labelKey: 'postListing.commercial' },
 ];
 
-export default function PostListingPage() {
+export default function PostListingPage() { return ( <Suspense fallback={null}> <PostListingPageInner /> </Suspense> ); } function PostListingPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { lang, apiBaseUrl } = useKoreb();
