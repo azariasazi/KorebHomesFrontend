@@ -5,13 +5,11 @@ const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../..'); 
 const config = getDefaultConfig(projectRoot); config.watchFolders = [workspaceRoot]; 
 config.resolver.nodeModulesPaths = [ path.resolve(projectRoot, 'node_modules'), path.resolve(workspaceRoot, 'node_modules'), ]; 
-const forcedModules = { react: path.resolve(projectRoot, 'node_modules/react'), };
+const forcedReactPath = path.resolve(projectRoot, 'node_modules/react'); 
 config.resolver.resolveRequest = (context, moduleName, platform) => { 
-    if (Object.prototype.hasOwnProperty.call(forcedModules, moduleName)) { 
-        return { 
-            filePath: require.resolve(forcedModules[moduleName]), type: 'sourceFile', 
-        }; 
+    if (moduleName === 'react') { 
+        return context.resolveRequest(context, forcedReactPath, platform); 
     } 
-        return context.resolveRequest(context, moduleName, platform); 
+    return context.resolveRequest(context, moduleName, platform); 
 }; 
 module.exports = config;
