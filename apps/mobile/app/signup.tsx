@@ -10,7 +10,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import Svg, { Polygon } from 'react-native-svg';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { colors, radius, spacing } from '@koreb/design-tokens';
 import { t } from '@koreb/i18n';
 import { useLang } from '@koreb/hooks';
@@ -25,6 +25,12 @@ const ROLES: { value: Role; titleKey: string; descKey: string }[] = [
 ];
 
 export default function SignUpScreen() {
+  // Both the Log In and Sign Up entry points land here (phone+OTP handles
+  // both — it finds an existing account or creates one). We read `mode` only
+  // to match the wording to what the user tapped, so it doesn't feel like a
+  // mistake. Mirrors the web app's ?mode=signup query param.
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const isSignup = mode === 'signup';
   // Language now lives app-wide in KorebProvider.
   const { lang, toggleLang } = useLang();
   const [firstName, setFirstName] = useState('');
@@ -38,7 +44,8 @@ export default function SignUpScreen() {
 
   const fullPhone = `+251${phone.replace(/\D/g, '')}`;
   const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-  const nameReady = firstName.trim().length > 0 && lastName.trim().length > 0;
+  // Name is only collected (and required) when creating an account.
+  const nameReady = !isSignup || (firstName.trim().length > 0 && lastName.trim().length > 0);
 
   async function handleSendCode() {
     setError(null);
@@ -121,31 +128,33 @@ export default function SignUpScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Name — required for creating an account. */}
-          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>{t(lang, 'auth.firstName')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t(lang, 'auth.firstNamePlaceholder')}
-                placeholderTextColor="#5B6265"
-                value={firstName}
-                onChangeText={setFirstName}
-                maxLength={40}
-              />
+          {/* Name — only collected when creating a new account. */}
+          {isSignup && (
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>{t(lang, 'auth.firstName')}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t(lang, 'auth.firstNamePlaceholder')}
+                  placeholderTextColor="#5B6265"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  maxLength={40}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>{t(lang, 'auth.lastName')}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t(lang, 'auth.lastNamePlaceholder')}
+                  placeholderTextColor="#5B6265"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  maxLength={40}
+                />
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>{t(lang, 'auth.lastName')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t(lang, 'auth.lastNamePlaceholder')}
-                placeholderTextColor="#5B6265"
-                value={lastName}
-                onChangeText={setLastName}
-                maxLength={40}
-              />
-            </View>
-          </View>
+          )}
 
           <Text style={styles.label}>{t(lang, 'auth.phoneNumber')}</Text>
           <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg }}>
@@ -174,19 +183,23 @@ export default function SignUpScreen() {
             )}
           </TouchableOpacity>
 
-          <Text style={[styles.label, { marginTop: spacing.xl }]}>{t(lang, 'auth.iAmA')}</Text>
-          <View style={{ gap: spacing.sm }}>
-            {ROLES.map((r) => (
-              <TouchableOpacity
-                key={r.value}
-                onPress={() => setRole(r.value)}
-                style={[styles.roleCard, role === r.value && styles.roleCardSelected]}
-              >
-                <Text style={styles.roleTitle}>{t(lang, r.titleKey)}</Text>
-                <Text style={styles.roleDesc}>{t(lang, r.descKey)}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {isSignup && (
+            <>
+              <Text style={[styles.label, { marginTop: spacing.xl }]}>{t(lang, 'auth.iAmA')}</Text>
+              <View style={{ gap: spacing.sm }}>
+                {ROLES.map((r) => (
+                  <TouchableOpacity
+                    key={r.value}
+                    onPress={() => setRole(r.value)}
+                    style={[styles.roleCard, role === r.value && styles.roleCardSelected]}
+                  >
+                    <Text style={styles.roleTitle}>{t(lang, r.titleKey)}</Text>
+                    <Text style={styles.roleDesc}>{t(lang, r.descKey)}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
         </>
       )}
 
@@ -213,10 +226,25 @@ export default function SignUpScreen() {
               <Text style={styles.goldButtonText}>{t(lang, 'auth.verifyCode')}</Text>
             )}
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => setStep('phone')} style={{ marginTop: 14 }}>
+            <Text style={styles.backLink}>← {t(lang, 'common.back')}</Text>
+          </TouchableOpacity>
         </>
       )}
 
       {error && <Text style={styles.error}>{error}</Text>}
+
+      {step === 'phone' && (
+        <Text style={styles.switchMode}>
+          {isSignup ? t(lang, 'auth.haveAccountPrompt') : t(lang, 'auth.noAccountPrompt')}{' '}
+          <Text
+            style={styles.switchModeLink}
+            onPress={() => router.setParams({ mode: isSignup ? undefined : 'signup' })}
+          >
+            {isSignup ? t(lang, 'auth.logInLink') : t(lang, 'auth.signUpLink')}
+          </Text>
+        </Text>
+      )}
 
       <Text style={styles.disclaimer}>{t(lang, 'auth.disclaimer')}</Text>
       </View>
@@ -320,5 +348,8 @@ const styles = StyleSheet.create({
   roleTitle: { fontSize: 13.5, fontWeight: '700', color: colors.cream },
   roleDesc: { fontSize: 11, color: '#9AA0A2', marginTop: 2 },
   error: { color: '#E38585', fontSize: 12.5, textAlign: 'center', marginTop: spacing.md },
+  backLink: { color: '#A6ADB0', fontSize: 12.5, textAlign: 'center' },
+  switchMode: { color: '#A6ADB0', fontSize: 13, textAlign: 'center', marginTop: spacing.lg },
+  switchModeLink: { color: colors.gold, fontWeight: '600' },
   disclaimer: { fontSize: 11, color: '#7C8284', textAlign: 'center', marginTop: spacing.lg, lineHeight: 16 },
 });

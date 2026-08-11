@@ -37,6 +37,8 @@ import {
   amenityLabel,
   listingDescription,
   contactLinks,
+  isSoldOrRented,
+  soldRentedLabel,
 } from '@koreb/utils';
 
 const { width } = Dimensions.get('window');
@@ -86,6 +88,7 @@ export default function ListingDetailScreen() {
   const links = contactLinks(listing.owner.contactPhone ?? ownerCard?.contactPhone);
   const description = listingDescription(listing, lang);
   const fl = floorLabel(listing, lang);
+  const listingId = listing.id;
 
   const facts: { label: string; value: string }[] = [];
   if (listing.bedrooms) facts.push({ label: t(lang, 'listingDetail.bedrooms'), value: String(listing.bedrooms) });
@@ -101,7 +104,7 @@ export default function ListingDetailScreen() {
 
   async function submitReport() {
     try {
-      await report.mutateAsync({ listingId: listing.id, reason: reportReason, details: reportDetails || undefined });
+      await report.mutateAsync({ listingId: listingId, reason: reportReason, details: reportDetails || undefined });
       setReportOpen(false);
       Alert.alert(t(lang, 'listingDetail.reportThanks'));
     } catch {

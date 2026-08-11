@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Linking,
+  RefreshControl,
   SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -131,8 +132,8 @@ export default function DashboardScreen() {
       ) : (
         <ScrollView
           contentContainerStyle={{ padding: spacing.lg, paddingTop: 4, gap: 14 }}
-          refreshing={isRefetching}
-          onRefresh={() => refetch()}
+          refreshControl={<RefreshControl refreshing={isRefetching}
+          onRefresh={() => refetch()} />}
         >
           {filtered.map((listing) => {
             const thumb = listingThumb(listing, apiBaseUrl);
