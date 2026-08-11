@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { t } from '@koreb/i18n';
@@ -45,7 +45,7 @@ const ROLES: { value: Role; titleKey: string; descKey: string; icon: React.React
   },
 ];
 
-export default function SignUpPage() {
+export default function SignUpPage() { return ( <Suspense fallback={null}> <SignUpPageInner /> </Suspense> ); } function SignUpPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   // Both the Log In and Sign Up header buttons land here (phone+OTP handles both
