@@ -29,8 +29,8 @@
       "expo-router",
       "expo-secure-store"
     ],
-    "extra": {
-      "apiUrl": "http://localhost:3000/api/v1"
+    "extra": { 
+      "apiUrl": "https://koreb-backend-production.up.railway.app/api/v1" 
     }
   }
 }
