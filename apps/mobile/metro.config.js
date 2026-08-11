@@ -1,15 +1,2 @@
 // Learn more: https://docs.expo.dev/guides/monorepos/ 
-const { getDefaultConfig } = require('expo/metro-config'); 
-const path = require('path'); 
-const projectRoot = __dirname; 
-const workspaceRoot = path.resolve(projectRoot, '../..'); 
-const config = getDefaultConfig(projectRoot); config.watchFolders = [workspaceRoot]; 
-config.resolver.nodeModulesPaths = [ path.resolve(projectRoot, 'node_modules'), path.resolve(workspaceRoot, 'node_modules'), ]; 
-const forcedReactPath = path.resolve(projectRoot, 'node_modules/react'); 
-config.resolver.resolveRequest = (context, moduleName, platform) => { 
-    if (moduleName === 'react') { 
-        return context.resolveRequest(context, forcedReactPath, platform); 
-    } 
-    return context.resolveRequest(context, moduleName, platform); 
-}; 
-module.exports = config;
+const { getDefaultConfig } = require('expo/metro-config'); const path = require('path'); const projectRoot = __dirname; const workspaceRoot = path.resolve(projectRoot, '../..'); const config = getDefaultConfig(projectRoot); config.watchFolders = [workspaceRoot]; config.resolver.nodeModulesPaths = [ path.resolve(projectRoot, 'node_modules'), path.resolve(workspaceRoot, 'node_modules'), ]; const forcedReactRoot = path.resolve(projectRoot, 'node_modules/react'); config.resolver.resolveRequest = (context, moduleName, platform) => { if (moduleName === 'react' || moduleName.startsWith('react/')) { const rest = moduleName.slice('react'.length); const target = rest ? path.join(forcedReactRoot, rest) : forcedReactRoot; const result = context.resolveRequest(context, target, platform); console.log('[metro-react-debug]', moduleName, '->', result.filePath || result); return result; } return context.resolveRequest(context, moduleName, platform); }; module.exports = config;

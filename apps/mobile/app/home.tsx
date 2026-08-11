@@ -19,11 +19,13 @@ import { t } from '@koreb/i18n';
 import { useKoreb, useListingsSearch, useFavoriteIds, useToggleFavorite } from '@koreb/hooks';
 import {
   formatPrice,
+  isSoldOrRented,
   listingThumb,
   listingTitle,
   listingTypeLabel,
   locationLabel,
   metaChips,
+  soldRentedLabel,
 } from '@koreb/utils';
 import type { Listing, ListingType, PropertyType, SortOption } from '@koreb/types';
 
