@@ -103,6 +103,25 @@ export function listingTypeLabel(
   if (lang === 'am') return listing.listingType === 'RENT' ? 'ለኪራይ' : 'ለሽያጭ';
   return listing.listingType === 'RENT' ? 'FOR RENT' : 'FOR SALE';
 }
+export function propertyTypeLabel(
+  listing: Pick<Listing, 'propertyType'>,
+  lang: Language = 'en'
+): string {
+  const typeAm: Record<string, string> = {
+    HOUSE: 'ቤት',
+    APARTMENT: 'አፓርታማ',
+    LAND: 'መሬት',
+    COMMERCIAL: 'የንግድ ቦታ',
+  };
+  const typeEn: Record<string, string> = {
+    HOUSE: 'House',
+    APARTMENT: 'Apartment',
+    LAND: 'Land',
+    COMMERCIAL: 'Commercial Space',
+  };
+  const map = lang === 'am' ? typeAm : typeEn;
+  return map[listing.propertyType] ?? listing.propertyType;
+}
 
 /** Description in the user's language, falling back to whichever exists. */
 export function listingDescription(listing: Listing, lang: Language = 'en'): string {
