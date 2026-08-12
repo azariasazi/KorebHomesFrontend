@@ -288,6 +288,9 @@ export default function ListingDetailScreen() {
             <TouchableOpacity style={styles.waBtn} onPress={() => Linking.openURL(links.whatsapp)}>
               <Text style={styles.waBtnText}>{t(lang, 'common.whatsapp')}</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.tgBtn} onPress={() => Linking.openURL(links.telegram)}>
+              <Text style={styles.tgBtnText}>{t(lang, 'common.telegram')}</Text>
+            </TouchableOpacity>
           </>
         ) : (
           <View style={styles.contactUnavail}>
@@ -395,6 +398,8 @@ const styles = StyleSheet.create({
   callBtnText: { color: colors.charcoal, fontWeight: '700', fontSize: 14 },
   waBtn: { flex: 1, borderWidth: 1.4, borderColor: colors.charcoal, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center' },
   waBtnText: { color: colors.charcoal, fontWeight: '700', fontSize: 14 },
+  tgBtn: { flex: 1, borderWidth: 1.4, borderColor: colors.charcoal, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center' },
+  tgBtnText: { color: colors.charcoal, fontWeight: '700', fontSize: 14 },
   contactUnavail: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
   contactUnavailText: { fontSize: 11.5, color: '#8A9093', textAlign: 'center' },
 
