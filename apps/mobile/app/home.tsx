@@ -347,11 +347,13 @@ export default function HomeFeedScreen() {
       </TouchableOpacity>
 
       {/* -------- bottom nav (4 tabs for Phase 1 — chat arrives in Phase 2) -------- */}
+      {/* -------- bottom nav -------- */}
       <View style={styles.bottomNav}>
         {[
           { key: 'home', label: lang === 'am' ? 'መነሻ' : 'Home', route: '/home' },
           { key: 'dashboard', label: lang === 'am' ? 'ማስታወቂያዎቼ' : 'My Listings', route: '/dashboard' },
           { key: 'favorites', label: lang === 'am' ? 'የተቀመጡ' : 'Favorites', route: '/favorites' },
+          { key: 'account', label: lang === 'am' ? 'መለያ' : 'Account', route: '/account' },
         ].map((tab) => (
           <TouchableOpacity key={tab.key} style={styles.navItem} onPress={() => tab.route !== '/home' && router.push(tab.route)}>
             <Text style={[styles.navText, tab.key === 'home' && styles.navTextActive]}>{tab.label}</Text>
@@ -524,9 +526,9 @@ const styles = StyleSheet.create({
   postFabText: { color: colors.charcoal, fontWeight: '700', fontSize: 13.5 },
   bottomNav: {
     flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
-    paddingVertical: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: colors.line,
+    paddingVertical: 14, paddingBottom: 18, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: colors.line,
   },
-  navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, fontWeight: '600', color: '#9AA0A2' },
-  navTextActive: { color: colors.charcoal },
+  navItem: { alignItems: 'center', paddingVertical: 4, paddingHorizontal: 10, minWidth: 64 },
+  navText: { fontSize: 13, fontWeight: '600', color: '#6B7275' },
+  navTextActive: { color: colors.gold, fontWeight: '700' },
 });
