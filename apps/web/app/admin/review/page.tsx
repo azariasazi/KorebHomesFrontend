@@ -14,6 +14,8 @@ import {
   amenityLabel,
   listingDescription,
   metaChips,
+  listingTypeLabel,
+  propertyTypeLabel,
 } from '@koreb/utils';
 import type { Listing, ListingRejectionCode } from '@koreb/types';
 
@@ -70,6 +72,24 @@ export default function AdminReviewPage() {
               <div className="queue-row" key={listing.id}>
                 <div className="qthumb" style={thumb ? { backgroundImage: `url(${thumb})` } : undefined} />
                 <div className="qinfo">
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
+                    <span
+                      style={{
+                        background: '#14181A', color: '#F6F3EC', fontSize: 10, fontWeight: 700,
+                        padding: '4px 9px', borderRadius: 999, letterSpacing: 0.3,
+                      }}
+                    >
+                      {listingTypeLabel(listing, lang)}
+                    </span>
+                    <span
+                      style={{
+                        background: '#EEF0F1', color: '#3A3F41', fontSize: 10, fontWeight: 700,
+                        padding: '4px 9px', borderRadius: 999, letterSpacing: 0.3,
+                      }}
+                    >
+                      {propertyTypeLabel(listing, lang)}
+                    </span>
+                  </div>
                   <b>
                     {listingTitle(listing, lang)} — {locationLabel(listing)}
                   </b>
@@ -136,6 +156,24 @@ export default function AdminReviewPage() {
         <div className="modal-backdrop" onClick={() => setPreviewing(null)}>
           <div className="modal-card" style={{ maxWidth: 560, maxHeight: '85vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <h3>{listingTitle(previewing, lang)}</h3>
+            <div style={{ display: 'flex', gap: 6, margin: '4px 0 10px' }}>
+              <span
+                style={{
+                  background: '#14181A', color: '#F6F3EC', fontSize: 10, fontWeight: 700,
+                  padding: '4px 9px', borderRadius: 999, letterSpacing: 0.3,
+                }}
+              >
+                {listingTypeLabel(previewing, lang)}
+              </span>
+              <span
+                style={{
+                  background: '#EEF0F1', color: '#3A3F41', fontSize: 10, fontWeight: 700,
+                  padding: '4px 9px', borderRadius: 999, letterSpacing: 0.3,
+                }}
+              >
+                {propertyTypeLabel(previewing, lang)}
+              </span>
+            </div>
 
             {/* photos */}
             {previewing.photos && previewing.photos.length > 0 ? (
