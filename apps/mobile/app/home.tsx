@@ -9,8 +9,8 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Polygon, Path, Circle } from 'react-native-svg';
 import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -497,9 +497,10 @@ const styles = StyleSheet.create({
   chip: {
     borderRadius: radius.pill, backgroundColor: '#fff', borderWidth: 1.2,
     borderColor: colors.line, paddingVertical: 7, paddingHorizontal: 13,
+    flexShrink: 0, alignSelf: 'flex-start',
   },
   chipActive: { backgroundColor: colors.charcoal, borderColor: colors.charcoal },
-  chipText: { fontSize: 12, fontWeight: '600', color: colors.charcoal },
+  chipText: { fontSize: 12, fontWeight: '600', color: colors.charcoal, flexShrink: 0 },
   chipTextActive: { color: colors.cream },
 
   sectionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
