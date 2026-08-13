@@ -16,7 +16,7 @@ import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
 import { router, useLocalSearchParams } from 'expo-router';
 import { colors, radius, spacing } from '@koreb/design-tokens';
 import { t } from '@koreb/i18n';
-import { useKoreb, useListingsSearch, useFavoriteIds, useToggleFavorite } from '@koreb/hooks';
+import { useKoreb, useMe, useListingsSearch, useFavoriteIds, useToggleFavorite } from '@koreb/hooks';
 import {
   formatPrice,
   isSoldOrRented,
@@ -33,6 +33,7 @@ type PropertyChip = PropertyType | 'ALL';
 
 export default function HomeFeedScreen() {
   const { lang, toggleLang, apiBaseUrl } = useKoreb();
+  const { data: me } = useMe();
 
   // Filters returned from the Search Filters modal arrive as route params.
   const incoming = useLocalSearchParams<{
@@ -216,9 +217,30 @@ export default function HomeFeedScreen() {
           </Svg>
           <Text style={styles.brand}>{t(lang, 'common.appName')}</Text>
         </View>
-        <TouchableOpacity style={styles.langPill} onPress={toggleLang}>
-          <Text style={styles.langPillText}>EN / አማ</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <TouchableOpacity style={styles.langPill} onPress={toggleLang}>
+            <Text style={styles.langPillText}>EN / አማ</Text>
+          </TouchableOpacity>
+          {me ? (
+            <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push('/account')}>
+              <Text style={styles.avatarBtnText}>
+                {(me.name || me.agencyName || '?').trim().charAt(0).toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.authBtn} onPress={() => router.push('/signup')}>
+                <Text style={styles.authBtnText}>{lang === 'am' ? 'ግባ' : 'Log In'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.authBtn, styles.authBtnGold]}
+                onPress={() => router.push({ pathname: '/signup', params: { mode: 'signup' } })}
+              >
+                <Text style={styles.authBtnText}>{lang === 'am' ? 'ተመዝገብ' : 'Sign Up'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
 
       {/* -------- search -------- */}
@@ -442,6 +464,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10,
   },
   langPillText: { fontSize: 11, fontWeight: '700', color: colors.charcoal },
+  authBtn: {
+    borderWidth: 1.2, borderColor: colors.charcoal, borderRadius: radius.pill,
+    paddingVertical: 7, paddingHorizontal: 13,
+  },
+  authBtnGold: { backgroundColor: colors.gold, borderColor: colors.gold },
+  authBtnText: { fontSize: 11.5, fontWeight: '700', color: colors.charcoal },
+  avatarBtn: {
+    width: 30, height: 30, borderRadius: 15, backgroundColor: colors.gold,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarBtnText: { fontSize: 13, fontWeight: '700', color: colors.charcoal },
 
   searchRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, marginBottom: spacing.md },
   searchBox: {

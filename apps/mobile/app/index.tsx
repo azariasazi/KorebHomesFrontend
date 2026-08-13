@@ -1,7 +1,8 @@
 import { Redirect } from 'expo-router';
 
 export default function Index() {
-  // Placeholder until we build real "already logged in?" session detection —
-  // for now this mirrors the web app's root redirect to /signup.
-  return <Redirect href="/signup" />;
+  // Browsing is open to everyone, no account required — mirrors the web
+  // app's root redirect to /home. Sign Up / Log In live in the home
+  // header and Account tab, not as a forced first screen.
+  return <Redirect href="/home" />;
 }
