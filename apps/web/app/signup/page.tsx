@@ -8,8 +8,9 @@ import { useLang } from '@koreb/hooks';
 import type { Role } from '@koreb/types';
 import { api } from '../../lib/api';
 import { ApiError } from '@koreb/api-client';
+type SignupRole = Exclude<Role, 'ADMIN'>;
 
-const ROLES: { value: Role; titleKey: string; descKey: string; icon: React.ReactNode }[] = [
+const ROLES: { value: SignupRole; titleKey: string; descKey: string; icon: React.ReactNode }[] = [
   {
     value: 'BUYER_RENTER',
     titleKey: 'auth.roleBuyer',
@@ -72,7 +73,7 @@ function SignUpPageInner() {
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('BUYER_RENTER');
+  const [role, setRole] = useState<SignupRole>('BUYER_RENTER');
 
   // login field (phone OR email)
   const [identifier, setIdentifier] = useState('');

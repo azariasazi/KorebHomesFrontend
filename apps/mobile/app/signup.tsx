@@ -17,8 +17,9 @@ import { useLang } from '@koreb/hooks';
 import type { Role } from '@koreb/types';
 import { ApiError } from '@koreb/api-client';
 import { api } from '../lib/api';
+type SignupRole = Exclude<Role, 'ADMIN'>;
 
-const ROLES: { value: Role; titleKey: string; descKey: string }[] = [
+const ROLES: { value: SignupRole; titleKey: string; descKey: string }[] = [
   { value: 'BUYER_RENTER', titleKey: 'auth.roleBuyer', descKey: 'auth.roleBuyerDesc' },
   { value: 'OWNER', titleKey: 'auth.roleOwner', descKey: 'auth.roleOwnerDesc' },
   { value: 'AGENT', titleKey: 'auth.roleAgent', descKey: 'auth.roleAgentDesc' },
@@ -40,7 +41,7 @@ export default function SignUpScreen() {
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('BUYER_RENTER');
+  const [role, setRole] = useState<SignupRole>('BUYER_RENTER');
 
   // login field
   const [identifier, setIdentifier] = useState('');
