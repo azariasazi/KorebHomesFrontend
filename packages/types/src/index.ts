@@ -49,7 +49,17 @@ export type Language = 'en' | 'am';
 
 export interface CurrentUser {
   id: string;
-  phone: string;
+  /** Login identifier. May be null for a Google-first user who hasn't added one yet. */
+  phone: string | null;
+  /** True once the phone has been confirmed via SMS. */
+  phoneVerified: boolean;
+  /** Login identifier / verification channel. Null if the user never added one. */
+  email: string | null;
+  /** True once the email has been confirmed. */
+  emailVerified: boolean;
+  firstName: string | null;
+  lastName: string | null;
+  /** Composed display name, kept in sync with firstName/lastName by the backend. */
   name: string | null;
   profilePhotoUrl: string | null;
   city: string | null;
@@ -60,6 +70,10 @@ export interface CurrentUser {
   publicContactPhone: string | null;
   /** What actually shows on their listings now: public number if set, else account phone. */
   effectiveContactPhone: string | null;
+  /** True when the user has linked a Google account. */
+  hasGoogleLinked: boolean;
+  /** True when phone is null — the user must verify a phone before posting a listing. */
+  needsPhone: boolean;
   /** Present on admin user lists — lets the admin table show a Suspended badge. */
   isSuspended?: boolean;
   suspendedReason?: string | null;

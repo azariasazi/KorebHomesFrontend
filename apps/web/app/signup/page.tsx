@@ -45,33 +45,71 @@ const ROLES: { value: Role; titleKey: string; descKey: string; icon: React.React
   },
 ];
 
-export default function SignUpPage() { return ( <Suspense fallback={null}> <SignUpPageInner /> </Suspense> ); } function SignUpPageInner() {
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignUpPageInner />
+    </Suspense>
+  );
+}
+
+function SignUpPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Both the Log In and Sign Up header buttons land here (phone+OTP handles both
-  // — it finds an existing account or creates one). We read ?mode= only to match
-  // the wording to what the user clicked, so it doesn't feel like a mistake.
+  // ?mode=signup → create-account view; otherwise the log-in view. Auth is now
+  // password-based, so the two are genuinely different: signup collects details
+  // and verifies a code; login is just identifier + password.
   const isSignup = searchParams.get('mode') === 'signup';
   const { lang, toggleLang } = useLang();
+
+  // shared
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // signup fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
+  const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('BUYER_RENTER');
-  const [step, setStep] = useState<'phone' | 'code'>('phone');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // login field (phone OR email)
+  const [identifier, setIdentifier] = useState('');
+
+  // verify step (signup only)
+  const [step, setStep] = useState<'form' | 'code'>('form');
+  const [code, setCode] = useState('');
+  const [userId, setUserId] = useState('');
+  const [channel, setChannel] = useState<'email' | 'sms'>('sms');
+  const [sentTo, setSentTo] = useState('');
 
   const fullPhone = `+251${phone.replace(/\D/g, '')}`;
   const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-  // Name is only collected (and required) when creating an account.
-  const nameReady = !isSignup || (firstName.trim().length > 0 && lastName.trim().length > 0);
 
-  async function handleSendCode() {
+  const signupReady =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    phone.replace(/\D/g, '').length >= 9 &&
+    password.length >= 8;
+  const loginReady = identifier.trim().length > 0 && password.length > 0;
+
+  // ---- Signup: create the account, then move to the code step ----
+  async function handleSignup() {
     setError(null);
     setLoading(true);
     try {
-      await api.auth.requestOtp(fullPhone);
+      const res = await api.auth.signup({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: fullPhone,
+        password,
+        role,
+        ...(email.trim() ? { email: email.trim() } : {}),
+      });
+      setUserId(res.userId);
+      setChannel(res.channel);
+      setSentTo(res.sentTo);
       setStep('code');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.');
@@ -80,21 +118,33 @@ export default function SignUpPage() { return ( <Suspense fallback={null}> <Sign
     }
   }
 
+  // ---- Signup: confirm the code (email or SMS depending on channel) → logged in ----
   async function handleVerify() {
     setError(null);
     setLoading(true);
     try {
-      // Send the collected name on signup; on login it's blank and the backend
-      // keeps the existing account's name.
-      await api.auth.verifyOtp({
-        phone: fullPhone,
-        code,
-        role,
-        ...(fullName ? { name: fullName } : {}),
-      });
+      if (channel === 'email') {
+        await api.auth.verifyEmail({ userId, code });
+      } else {
+        await api.auth.verifyPhoneSignup({ userId, code });
+      }
       router.push('/home');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ---- Login: identifier + password → logged in (no code step) ----
+  async function handleLogin() {
+    setError(null);
+    setLoading(true);
+    try {
+      await api.auth.login({ identifier: identifier.trim(), password });
+      router.push('/home');
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not sign you in. Check your details.');
     } finally {
       setLoading(false);
     }
@@ -137,16 +187,10 @@ export default function SignUpPage() { return ( <Suspense fallback={null}> <Sign
                 : t(lang, isSignup ? 'auth.createAccount' : 'auth.logInTitle')}
             </h3>
 
-            {step === 'phone' && (
+            {/* ============ SIGNUP — details form ============ */}
+            {isSignup && step === 'form' && (
               <>
-                {/* Google sign-in — styled and placed, but inactive until the
-                    backend OAuth endpoint exists. Shown as "Soon" rather than a
-                    dead button so it doesn't look broken. */}
-                <button
-                  className="su-social-btn"
-                  disabled
-                  title={t(lang, 'auth.googleSoonHint')}
-                >
+                <button className="su-social-btn" disabled title={t(lang, 'auth.googleSoonHint')}>
                   <svg className="g-icon" viewBox="0 0 48 48">
                     <path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
                     <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
@@ -159,31 +203,28 @@ export default function SignUpPage() { return ( <Suspense fallback={null}> <Sign
 
                 <div className="su-divider">{t(lang, 'auth.orDivider')}</div>
 
-                {/* Name — collected only when creating an account. */}
-                {isSignup && (
-                  <div className="su-name-row">
-                    <div style={{ flex: 1 }}>
-                      <div className="su-field-label">{t(lang, 'auth.firstName')}</div>
-                      <input
-                        className="su-input"
-                        placeholder={t(lang, 'auth.firstNamePlaceholder')}
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        maxLength={40}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div className="su-field-label">{t(lang, 'auth.lastName')}</div>
-                      <input
-                        className="su-input"
-                        placeholder={t(lang, 'auth.lastNamePlaceholder')}
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        maxLength={40}
-                      />
-                    </div>
+                <div className="su-name-row">
+                  <div style={{ flex: 1 }}>
+                    <div className="su-field-label">{t(lang, 'auth.firstName')}</div>
+                    <input
+                      className="su-input"
+                      placeholder={t(lang, 'auth.firstNamePlaceholder')}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      maxLength={40}
+                    />
                   </div>
-                )}
+                  <div style={{ flex: 1 }}>
+                    <div className="su-field-label">{t(lang, 'auth.lastName')}</div>
+                    <input
+                      className="su-input"
+                      placeholder={t(lang, 'auth.lastNamePlaceholder')}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      maxLength={40}
+                    />
+                  </div>
+                </div>
 
                 <div className="su-field-label">{t(lang, 'auth.phoneNumber')}</div>
                 <div className="su-phone-row">
@@ -195,40 +236,120 @@ export default function SignUpPage() { return ( <Suspense fallback={null}> <Sign
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
+
+                <div className="su-field-label" style={{ marginTop: 14 }}>
+                  {t(lang, 'auth.emailOptional')}
+                </div>
+                <input
+                  className="su-input"
+                  type="email"
+                  placeholder={t(lang, 'auth.emailPlaceholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ marginBottom: 14 }}
+                />
+
+                <div className="su-field-label">{t(lang, 'auth.password')}</div>
+                <input
+                  className="su-input"
+                  type="password"
+                  placeholder={t(lang, 'auth.passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ marginBottom: 6 }}
+                />
+                <p className="su-hint">{t(lang, 'auth.passwordHint')}</p>
+
                 <button
                   className="su-gold-btn"
-                  disabled={loading || phone.length < 9 || !nameReady}
-                  onClick={handleSendCode}
-                  style={{ marginBottom: 26 }}
+                  disabled={loading || !signupReady}
+                  onClick={handleSignup}
+                  style={{ marginTop: 8, marginBottom: 26 }}
                 >
-                  {loading ? t(lang, 'common.loading') : t(lang, 'auth.sendCode')}
+                  {loading ? t(lang, 'common.loading') : t(lang, 'auth.createAccount')}
                 </button>
 
-                {isSignup && (
-                  <>
-                    <div className="su-field-label">{t(lang, 'auth.iAmA')}</div>
-                    <div className="su-role-grid">
-                      {ROLES.map((r) => (
-                        <div
-                          key={r.value}
-                          className={`su-role-card${role === r.value ? ' sel' : ''}`}
-                          onClick={() => setRole(r.value)}
-                        >
-                          <div className="ic">{r.icon}</div>
-                          <div>
-                            <b>{t(lang, r.titleKey)}</b>
-                            <span>{t(lang, r.descKey)}</span>
-                          </div>
-                        </div>
-                      ))}
+                <div className="su-field-label">{t(lang, 'auth.iAmA')}</div>
+                <div className="su-role-grid">
+                  {ROLES.map((r) => (
+                    <div
+                      key={r.value}
+                      className={`su-role-card${role === r.value ? ' sel' : ''}`}
+                      onClick={() => setRole(r.value)}
+                    >
+                      <div className="ic">{r.icon}</div>
+                      <div>
+                        <b>{t(lang, r.titleKey)}</b>
+                        <span>{t(lang, r.descKey)}</span>
+                      </div>
                     </div>
-                  </>
-                )}
+                  ))}
+                </div>
               </>
             )}
 
+            {/* ============ LOGIN — identifier + password ============ */}
+            {!isSignup && step === 'form' && (
+              <>
+                <button className="su-social-btn" disabled title={t(lang, 'auth.googleSoonHint')}>
+                  <svg className="g-icon" viewBox="0 0 48 48">
+                    <path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
+                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.5 5C9.6 39.6 16.2 44 24 44z" />
+                    <path fill="#1976D2" d="M43.6 20.5H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C41.1 36.3 44 30.7 44 24c0-1.3-.1-2.3-.4-3.5z" />
+                  </svg>
+                  {t(lang, 'auth.continueWithGoogle')}
+                  <span className="su-social-soon">{t(lang, 'auth.comingSoon')}</span>
+                </button>
+
+                <div className="su-divider">{t(lang, 'auth.orDivider')}</div>
+
+                <div className="su-field-label">{t(lang, 'auth.identifier')}</div>
+                <input
+                  className="su-input"
+                  placeholder={t(lang, 'auth.identifierPlaceholder')}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  style={{ marginBottom: 14 }}
+                />
+
+                <div className="su-field-label">{t(lang, 'auth.password')}</div>
+                <input
+                  className="su-input"
+                  type="password"
+                  placeholder={t(lang, 'auth.passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && loginReady && !loading) handleLogin();
+                  }}
+                  style={{ marginBottom: 6 }}
+                />
+                <Link href="/forgot-password" className="su-forgot-link">
+                  {t(lang, 'auth.forgotPassword')}
+                </Link>
+
+                <button
+                  className="su-gold-btn"
+                  disabled={loading || !loginReady}
+                  onClick={handleLogin}
+                  style={{ marginTop: 16 }}
+                >
+                  {loading ? t(lang, 'common.loading') : t(lang, 'auth.logIn')}
+                </button>
+              </>
+            )}
+
+            {/* ============ VERIFY — code step (signup only) ============ */}
             {step === 'code' && (
               <>
+                <p className="su-sent-note">
+                  {t(
+                    lang,
+                    channel === 'email' ? 'auth.codeSentEmail' : 'auth.codeSentSms',
+                    { target: sentTo },
+                  )}
+                </p>
                 <div className="su-field-label">{t(lang, 'auth.enterCode')}</div>
                 <input
                   className="su-input"
@@ -238,11 +359,15 @@ export default function SignUpPage() { return ( <Suspense fallback={null}> <Sign
                   onChange={(e) => setCode(e.target.value)}
                   maxLength={6}
                 />
-                <button className="su-gold-btn" disabled={loading || code.length < 4} onClick={handleVerify}>
+                <button
+                  className="su-gold-btn"
+                  disabled={loading || code.length < 4}
+                  onClick={handleVerify}
+                >
                   {loading ? t(lang, 'common.loading') : t(lang, 'auth.verifyCode')}
                 </button>
                 <button
-                  onClick={() => setStep('phone')}
+                  onClick={() => setStep('form')}
                   style={{ background: 'none', border: 'none', color: '#A6ADB0', fontSize: 12.5, marginTop: 14, width: '100%', cursor: 'pointer' }}
                 >
                   ← {t(lang, 'common.back')}
@@ -252,7 +377,7 @@ export default function SignUpPage() { return ( <Suspense fallback={null}> <Sign
 
             {error && <p className="su-error">{error}</p>}
 
-            {step === 'phone' && (
+            {step === 'form' && (
               <p className="su-switch-mode">
                 {isSignup ? t(lang, 'auth.haveAccountPrompt') : t(lang, 'auth.noAccountPrompt')}{' '}
                 <a href={isSignup ? '/signup' : '/signup?mode=signup'}>

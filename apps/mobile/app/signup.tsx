@@ -25,33 +25,57 @@ const ROLES: { value: Role; titleKey: string; descKey: string }[] = [
 ];
 
 export default function SignUpScreen() {
-  // Both the Log In and Sign Up entry points land here (phone+OTP handles
-  // both — it finds an existing account or creates one). We read `mode` only
-  // to match the wording to what the user tapped, so it doesn't feel like a
-  // mistake. Mirrors the web app's ?mode=signup query param.
+  // ?mode=signup → create-account view; otherwise log-in. Auth is password-based:
+  // signup collects details + verifies a code; login is identifier + password.
   const { mode } = useLocalSearchParams<{ mode?: string }>();
   const isSignup = mode === 'signup';
-  // Language now lives app-wide in KorebProvider.
   const { lang, toggleLang } = useLang();
+
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // signup fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
+  const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('BUYER_RENTER');
-  const [step, setStep] = useState<'phone' | 'code'>('phone');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // login field
+  const [identifier, setIdentifier] = useState('');
+
+  // verify step
+  const [step, setStep] = useState<'form' | 'code'>('form');
+  const [code, setCode] = useState('');
+  const [userId, setUserId] = useState('');
+  const [channel, setChannel] = useState<'email' | 'sms'>('sms');
+  const [sentTo, setSentTo] = useState('');
 
   const fullPhone = `+251${phone.replace(/\D/g, '')}`;
-  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-  // Name is only collected (and required) when creating an account.
-  const nameReady = !isSignup || (firstName.trim().length > 0 && lastName.trim().length > 0);
 
-  async function handleSendCode() {
+  const signupReady =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    phone.replace(/\D/g, '').length >= 9 &&
+    password.length >= 8;
+  const loginReady = identifier.trim().length > 0 && password.length > 0;
+
+  async function handleSignup() {
     setError(null);
     setLoading(true);
     try {
-      await api.auth.requestOtp(fullPhone);
+      const res = await api.auth.signup({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: fullPhone,
+        password,
+        role,
+        ...(email.trim() ? { email: email.trim() } : {}),
+      });
+      setUserId(res.userId);
+      setChannel(res.channel);
+      setSentTo(res.sentTo);
       setStep('code');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.');
@@ -64,15 +88,27 @@ export default function SignUpScreen() {
     setError(null);
     setLoading(true);
     try {
-      await api.auth.verifyOtp({
-        phone: fullPhone,
-        code,
-        role,
-        ...(fullName ? { name: fullName } : {}),
-      });
+      if (channel === 'email') {
+        await api.auth.verifyEmail({ userId, code });
+      } else {
+        await api.auth.verifyPhoneSignup({ userId, code });
+      }
       router.replace('/home');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleLogin() {
+    setError(null);
+    setLoading(true);
+    try {
+      await api.auth.login({ identifier: identifier.trim(), password });
+      router.replace('/home');
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not sign you in. Check your details.');
     } finally {
       setLoading(false);
     }
@@ -83,9 +119,6 @@ export default function SignUpScreen() {
       style={{ flex: 1, backgroundColor: colors.charcoal }}
       contentContainerStyle={{ paddingBottom: 60 }}
     >
-      {/* Brand banner — the Addis Ababa night skyline with a dark scrim so the
-          mark and headline stay readable over the city lights. Mirrors the web
-          design's photo panel, adapted to a top banner for mobile. */}
       <ImageBackground
         source={require('../assets/brand-photo.jpg')}
         style={styles.banner}
@@ -108,10 +141,9 @@ export default function SignUpScreen() {
 
       <View style={{ padding: spacing.lg, paddingTop: spacing.xl }}>
 
-      {step === 'phone' && (
+      {/* ============ SIGNUP — details form ============ */}
+      {isSignup && step === 'form' && (
         <>
-          {/* Google sign-in — placed but disabled until the backend OAuth
-              endpoint exists; shows a "Soon" tag rather than a dead button. */}
           <TouchableOpacity style={styles.socialBtn} disabled activeOpacity={1}>
             <View style={styles.gIcon}>
               <Text style={styles.gIconText}>G</Text>
@@ -128,36 +160,33 @@ export default function SignUpScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Name — only collected when creating a new account. */}
-          {isSignup && (
-            <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>{t(lang, 'auth.firstName')}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t(lang, 'auth.firstNamePlaceholder')}
-                  placeholderTextColor="#5B6265"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  maxLength={40}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>{t(lang, 'auth.lastName')}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t(lang, 'auth.lastNamePlaceholder')}
-                  placeholderTextColor="#5B6265"
-                  value={lastName}
-                  onChangeText={setLastName}
-                  maxLength={40}
-                />
-              </View>
+          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t(lang, 'auth.firstName')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t(lang, 'auth.firstNamePlaceholder')}
+                placeholderTextColor="#5B6265"
+                value={firstName}
+                onChangeText={setFirstName}
+                maxLength={40}
+              />
             </View>
-          )}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t(lang, 'auth.lastName')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t(lang, 'auth.lastNamePlaceholder')}
+                placeholderTextColor="#5B6265"
+                value={lastName}
+                onChangeText={setLastName}
+                maxLength={40}
+              />
+            </View>
+          </View>
 
           <Text style={styles.label}>{t(lang, 'auth.phoneNumber')}</Text>
-          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg }}>
+          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
             <View style={styles.codeBox}>
               <Text style={styles.codeBoxText}>+251</Text>
             </View>
@@ -171,40 +200,118 @@ export default function SignUpScreen() {
             />
           </View>
 
+          <Text style={styles.label}>{t(lang, 'auth.emailOptional')}</Text>
+          <TextInput
+            style={[styles.input, { marginBottom: spacing.md }]}
+            placeholder={t(lang, 'auth.emailPlaceholder')}
+            placeholderTextColor="#5B6265"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <Text style={styles.label}>{t(lang, 'auth.password')}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder={t(lang, 'auth.passwordPlaceholder')}
+            placeholderTextColor="#5B6265"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Text style={styles.hint}>{t(lang, 'auth.passwordHint')}</Text>
+
           <TouchableOpacity
-            style={[styles.goldButton, (loading || phone.length < 9 || !nameReady) && styles.disabled]}
-            disabled={loading || phone.length < 9 || !nameReady}
-            onPress={handleSendCode}
+            style={[styles.goldButton, (loading || !signupReady) && styles.disabled]}
+            disabled={loading || !signupReady}
+            onPress={handleSignup}
           >
             {loading ? (
               <ActivityIndicator color={colors.charcoal} />
             ) : (
-              <Text style={styles.goldButtonText}>{t(lang, 'auth.sendCode')}</Text>
+              <Text style={styles.goldButtonText}>{t(lang, 'auth.createAccount')}</Text>
             )}
           </TouchableOpacity>
 
-          {isSignup && (
-            <>
-              <Text style={[styles.label, { marginTop: spacing.xl }]}>{t(lang, 'auth.iAmA')}</Text>
-              <View style={{ gap: spacing.sm }}>
-                {ROLES.map((r) => (
-                  <TouchableOpacity
-                    key={r.value}
-                    onPress={() => setRole(r.value)}
-                    style={[styles.roleCard, role === r.value && styles.roleCardSelected]}
-                  >
-                    <Text style={styles.roleTitle}>{t(lang, r.titleKey)}</Text>
-                    <Text style={styles.roleDesc}>{t(lang, r.descKey)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          )}
+          <Text style={[styles.label, { marginTop: spacing.xl }]}>{t(lang, 'auth.iAmA')}</Text>
+          <View style={{ gap: spacing.sm }}>
+            {ROLES.map((r) => (
+              <TouchableOpacity
+                key={r.value}
+                onPress={() => setRole(r.value)}
+                style={[styles.roleCard, role === r.value && styles.roleCardSelected]}
+              >
+                <Text style={styles.roleTitle}>{t(lang, r.titleKey)}</Text>
+                <Text style={styles.roleDesc}>{t(lang, r.descKey)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </>
       )}
 
+      {/* ============ LOGIN — identifier + password ============ */}
+      {!isSignup && step === 'form' && (
+        <>
+          <TouchableOpacity style={styles.socialBtn} disabled activeOpacity={1}>
+            <View style={styles.gIcon}>
+              <Text style={styles.gIconText}>G</Text>
+            </View>
+            <Text style={styles.socialBtnText}>{t(lang, 'auth.continueWithGoogle')}</Text>
+            <View style={styles.soonTag}>
+              <Text style={styles.soonTagText}>{t(lang, 'auth.comingSoon')}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t(lang, 'auth.orDivider')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <Text style={styles.label}>{t(lang, 'auth.identifier')}</Text>
+          <TextInput
+            style={[styles.input, { marginBottom: spacing.md }]}
+            placeholder={t(lang, 'auth.identifierPlaceholder')}
+            placeholderTextColor="#5B6265"
+            autoCapitalize="none"
+            value={identifier}
+            onChangeText={setIdentifier}
+          />
+
+          <Text style={styles.label}>{t(lang, 'auth.password')}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder={t(lang, 'auth.passwordPlaceholder')}
+            placeholderTextColor="#5B6265"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity onPress={() => router.push('/forgot-password')} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+            <Text style={styles.forgotLink}>{t(lang, 'auth.forgotPassword')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.goldButton, (loading || !loginReady) && styles.disabled, { marginTop: spacing.md }]}
+            disabled={loading || !loginReady}
+            onPress={handleLogin}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.charcoal} />
+            ) : (
+              <Text style={styles.goldButtonText}>{t(lang, 'auth.logIn')}</Text>
+            )}
+          </TouchableOpacity>
+        </>
+      )}
+
+      {/* ============ VERIFY — code step (signup only) ============ */}
       {step === 'code' && (
         <>
+          <Text style={styles.sentNote}>
+            {t(lang, channel === 'email' ? 'auth.codeSentEmail' : 'auth.codeSentSms', { target: sentTo })}
+          </Text>
           <Text style={styles.label}>{t(lang, 'auth.enterCode')}</Text>
           <TextInput
             style={[styles.input, { textAlign: 'center', letterSpacing: 4, marginBottom: spacing.lg }]}
@@ -226,7 +333,7 @@ export default function SignUpScreen() {
               <Text style={styles.goldButtonText}>{t(lang, 'auth.verifyCode')}</Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setStep('phone')} style={{ marginTop: 14 }}>
+          <TouchableOpacity onPress={() => setStep('form')} style={{ marginTop: 14 }}>
             <Text style={styles.backLink}>← {t(lang, 'common.back')}</Text>
           </TouchableOpacity>
         </>
@@ -234,7 +341,7 @@ export default function SignUpScreen() {
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {step === 'phone' && (
+      {step === 'form' && (
         <Text style={styles.switchMode}>
           {isSignup ? t(lang, 'auth.haveAccountPrompt') : t(lang, 'auth.noAccountPrompt')}{' '}
           <Text
@@ -352,4 +459,7 @@ const styles = StyleSheet.create({
   switchMode: { color: '#A6ADB0', fontSize: 13, textAlign: 'center', marginTop: spacing.lg },
   switchModeLink: { color: colors.gold, fontWeight: '600' },
   disclaimer: { fontSize: 11, color: '#7C8284', textAlign: 'center', marginTop: spacing.lg, lineHeight: 16 },
+  hint: { fontSize: 11, color: '#7C8284', marginTop: 6, marginBottom: 2 },
+  forgotLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600' },
+  sentNote: { color: '#A6ADB0', fontSize: 12.5, textAlign: 'center', marginBottom: spacing.md, lineHeight: 18 },
 });
